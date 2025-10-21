@@ -1,5 +1,6 @@
 // Library
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 // -------
 // PROGRAM
@@ -21,6 +22,9 @@ class Program
 
     /// <summary>Application settings</summary>
     static Settings settings = Settings.Load();
+
+    /// <summary>Cache for todo lists: DisplayName -> TodoTaskList</summary>
+    static Dictionary<string, TodoTaskList> todoListsMap = new Dictionary<string, TodoTaskList>();
 
     // MAIN
     // ----
@@ -79,6 +83,10 @@ class Program
     private static async Task EnsureAuthentication()
     {
         client ??= await AuthManager.Login(APP_DIR, settings);
+        if (client != null && todoListsMap.Count == 0) // Populate map if client is authenticated and map is empty
+        {
+            await PopulateAllLists();
+        }
     }
 
     // COMMANDS
@@ -90,12 +98,14 @@ class Program
         client = await AuthManager.Login(APP_DIR, settings);
         var user = await client!.Me.GetAsync();
         Console.WriteLine($"Login successful! User: {user!.DisplayName}");
+        await PopulateAllLists(); // Populate the map after successful login
     }
 
     /// <summary>Logout from Microsoft Graph</summary>
     static async Task Logout()
     {
         await AuthManager.Logout(APP_DIR, settings);
+        todoListsMap.Clear(); // Clear the map on logout
         Console.WriteLine("Logged out.");
     }
 
@@ -107,16 +117,25 @@ class Program
         Console.WriteLine($"\n👤 User: {user!.DisplayName} ({user.UserPrincipalName})\n");
     }
 
+    /// <summary>Get all the todo lists and populate the map</summary>
+    static async Task PopulateAllLists()
+    {
+        var lists = await client!.Me.Todo.Lists.GetAsync();
+        todoListsMap.Clear();
+        foreach (var list in lists!.Value!)
+        {
+            todoListsMap[list.DisplayName!] = list;
+        }
+    }
+
     /// <summary>Show all the todo lists</summary>
     static async Task ShowAllLists(List<string> args)
     {
-        // Ensure we're logged in
+        // Ensure we are authenticated
         await EnsureAuthentication();
 
-        // Get all the todo lists
-        var lists = await client!.Me.Todo.Lists.GetAsync();
-
-        foreach (var list in lists!.Value!)
+        // Loop over all the lists
+        foreach (var list in todoListsMap.Values)
         {
             if (args.Contains("--owned") && !list.IsOwner.GetValueOrDefault(false))
             {
