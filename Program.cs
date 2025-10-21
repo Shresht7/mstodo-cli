@@ -63,8 +63,7 @@ class Program
                 case "done":
                     await CompleteTask(rest, formatter); break;
                 case "delete":
-                    Console.WriteLine("DeleteTask");
-                    break;
+                    await DeleteTask(rest, formatter); break;
                 case "help":
                 case "--help":
                 case "-h":
@@ -318,6 +317,75 @@ class Program
         }
     }
 
+    static async Task DeleteTask(List<string> args, IOutputFormatter formatter)
+    {
+        // Ensure that we are authenticated
+        await EnsureAuthentication();
+
+        // Ensure that we have a list identifier and a task identifier
+        if (args.Count < 2)
+        {
+            Console.WriteLine("Error: Please provide a list identifier and a task identifier.");
+            Console.WriteLine("Usage: delete <list_identifier> <task_identifier>");
+            return;
+        }
+
+        // Extract the list identifier and task identifier
+        string listIdentifier = args[0];
+        string taskIdentifier = string.Join(" ", args.Skip(1));
+
+        // Find the todo list by identifier
+        TodoTaskList? todoList = Helpers.GetListFromIdentifier(listIdentifier, todoListsMap);
+        if (todoList == null)
+        {
+            Console.WriteLine($"Error: Todo list '{listIdentifier}' not found.");
+            return;
+        }
+
+        // Fetch tasks for the list to find the target task
+        var tasks = await client!.Me.Todo.Lists[todoList.Id].Tasks.GetAsync();
+        TodoTask? targetTask = null;
+
+        // Try to find by index
+        if (int.TryParse(taskIdentifier, out int index))
+        {
+            if (index >= 0 && index < tasks!.Value!.Count)
+            {
+                targetTask = tasks.Value.ElementAt(index);
+            }
+        }
+
+        // Try to find by title (case-insensitive)
+        if (targetTask == null)
+        {
+            targetTask = tasks!.Value!.FirstOrDefault(t => t.Title!.Equals(taskIdentifier, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (targetTask == null)
+        {
+            Console.WriteLine($"Error: Task '{taskIdentifier}' not found in list '{todoList.DisplayName}'.");
+            return;
+        }
+
+        // Delete the task
+        try
+        {
+            await client!.Me.Todo.Lists[todoList.Id].Tasks[targetTask.Id].DeleteAsync();
+            if (formatter is JsonFormatter)
+            {
+                Console.WriteLine(formatter.Format(targetTask));
+            }
+            else
+            {
+                Console.WriteLine($"Successfully deleted task '{targetTask!.Title}' from list '{todoList.DisplayName}'.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting task: {ex.Message}");
+        }
+    }
+
     /// <summary>Show the help message</summary>
     static void ShowHelp()
     {
@@ -341,7 +409,7 @@ class Program
         Console.WriteLine("  show <list> [--limit <number>] Show tasks in a todo list");
         Console.WriteLine("  add <list> <title> Add a new task to a specific list");
         Console.WriteLine("  complete <list> <task> Complete a task in a specific list");
-        Console.WriteLine("  delete      Delete a task");
+        Console.WriteLine("  delete <list> <task>   Delete a task in a specific list");
         Console.WriteLine("");
 
         Console.WriteLine("  help        Show this help message");

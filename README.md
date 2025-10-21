@@ -28,7 +28,10 @@ mstodo help
     *   Example (JSON): `mstodo show Tasks --json`
 -   `add`: Add a new task (Not yet implemented).
 -   `complete`: Complete a task (Not yet implemented).
--   `delete`: Delete a task (Not yet implemented).
+-   `delete <list_identifier> <task_identifier>`: Delete a task in a specific To Do list.
+    *   `<list_identifier>` can be the list's display name (e.g., "Tasks", "Ideas") or its 0-based index.
+    *   `<task_identifier>` can be the task's title or its 0-based index within the list.
+    *   Example: `mstodo delete Tasks "My Task"`
 -   `help`: Show this help message.
 
 ---
