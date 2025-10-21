@@ -26,8 +26,14 @@ mstodo help
     *   Example: `mstodo show Tasks`
     *   Example: `mstodo show Ideas --limit 5`
     *   Example (JSON): `mstodo show Tasks --json`
--   `add`: Add a new task (Not yet implemented).
--   `complete`: Complete a task (Not yet implemented).
+-   `add <list_identifier> <task_title>`: Add a new task to a specific list.
+    *   `<list_identifier>` can be the list's display name (e.g., "Tasks", "Ideas") or its 0-based index.
+    *   `<task_title>` is the title of the task to add.
+    *   Example: `mstodo add Tasks "Buy groceries"`
+-   `complete <list_identifier> <task_identifier>`: Complete a task in a specific list.
+    *   `<list_identifier>` can be the list's display name (e.g., "Tasks", "Ideas") or its 0-based index.
+    *   `<task_identifier>` can be the task's title or its 0-based index within the list.
+    *   Example: `mstodo complete Tasks "Buy groceries"`
 -   `delete <list_identifier> <task_identifier>`: Delete a task in a specific To Do list.
     *   `<list_identifier>` can be the list's display name (e.g., "Tasks", "Ideas") or its 0-based index.
     *   `<task_identifier>` can be the task's title or its 0-based index within the list.
