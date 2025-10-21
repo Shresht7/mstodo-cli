@@ -63,8 +63,6 @@ class AuthManager
                 .ExecuteAsync();
         }
 
-        Console.WriteLine($"☑️ Logged in as user: {result.Account.Username}");
-
         // Plug token in graph
         var provider = new BaseBearerTokenAuthenticationProvider(
             new TokenProvider(result.AccessToken)
@@ -72,6 +70,34 @@ class AuthManager
 
         // Instantiate the Microsoft Graph client
         return new GraphServiceClient(provider);
+    }
+
+    public static async Task<GraphServiceClient> Login(string appDir, Settings settings)
+    {
+        return await InitMicrosoftGraph(appDir, settings);
+    }
+
+    /// <summary>
+    /// Log out the user by clearing the token cache
+    /// </summary>
+    public static async Task Logout(string appDir, Settings settings)
+    {
+        string tokenCachePath = Path.Combine(appDir, TOKEN_FILE);
+
+        // Delete the token cache file
+        if (File.Exists(tokenCachePath))
+        {
+            File.Delete(tokenCachePath);
+        }
+
+        // Clear accounts from the MSAL cache
+        var app = PublicClientApplicationBuilder.Create(settings.ClientId)
+            .Build();
+        var accounts = await app.GetAccountsAsync();
+        foreach (var account in accounts)
+        {
+            await app.RemoveAsync(account);
+        }
     }
 }
 
