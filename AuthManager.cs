@@ -9,30 +9,21 @@ using Microsoft.Kiota.Abstractions.Authentication;
 
 class AuthManager
 {
-    /// <summary>Application Client ID</summary>
-    const string CLIENT_ID = "2157a77b-da98-48e8-8240-2d26d1dbe0b4";
-
-    /// <summary>Authority URL</summary>
-    const string AUTHORITY = "https://login.microsoftonline.com/common";
-
-    /// <summary>Permission scopes requested by the application</summary>
-    static readonly string[] SCOPES = ["User.Read", "Tasks.ReadWrite"];
-
     /// <summary>Name of the token cache file</summary>
     static readonly string TOKEN_FILE = ".token.bin";
 
     /// <summary>
     /// Initialize the Microsoft Graph Client and login as the user
     /// </summary>
-    public static async Task<GraphServiceClient> InitMicrosoftGraph(string appDir)
+    public static async Task<GraphServiceClient> InitMicrosoftGraph(string appDir, Settings settings)
     {
         // Path to the token cache file
         string tokenCachePath = Path.Combine(appDir, TOKEN_FILE);
 
         // Instantiate client application
-        var app = PublicClientApplicationBuilder.Create(CLIENT_ID)
-            .WithAuthority(AUTHORITY)
-            .WithRedirectUri("http://localhost")
+        var app = PublicClientApplicationBuilder.Create(settings.ClientId)
+            .WithAuthority(settings.AuthorityUrl)
+            .WithRedirectUri(settings.RedirectUri)
             .Build();
 
         // Configure persistent token cache
@@ -62,12 +53,12 @@ class AuthManager
         try
         {
             // Try silent sign-in first...
-            result = await app.AcquireTokenSilent(SCOPES, accounts.FirstOrDefault()).ExecuteAsync();
+            result = await app.AcquireTokenSilent(settings.Scopes, accounts.FirstOrDefault()).ExecuteAsync();
         }
         catch (MsalUiRequiredException)
         {
             // ... otherwise, fallback to interactive browser flow
-            result = await app.AcquireTokenInteractive(SCOPES)
+            result = await app.AcquireTokenInteractive(settings.Scopes)
                 .WithPrompt(Prompt.SelectAccount)
                 .ExecuteAsync();
         }

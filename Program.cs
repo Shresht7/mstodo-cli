@@ -33,8 +33,11 @@ class Program
                 return;
             }
 
+            // Load the AppSettings
+            var settings = Settings.Load();
+
             // Initialize Microsoft Graph Client and login as user
-            client = await AuthManager.InitMicrosoftGraph(APP_DIR);
+            client = await AuthManager.InitMicrosoftGraph(APP_DIR, settings);
 
             // Switch on the subcommand and dispatch the corresponding action
             string command = args[0];
