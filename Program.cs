@@ -33,23 +33,26 @@ class Program
     {
         try
         {
+            // Get the output formatter
+            IOutputFormatter formatter = OutputManager.GetFormatter(args.ToList());
+
             // Switch on the subcommand and dispatch the corresponding action
             string command = args.Length > 0 ? args[0].ToLower() : string.Empty;
 
             switch (command)
             {
                 case "login":
-                    await Login(); break;
+                    await Login(formatter); break;
                 case "logout":
                     await Logout(); break;
                 case "user":
-                    await ShowUser(); break;
+                    await ShowUser(formatter); break;
                 case "list":
                 case "lists":
-                    await ShowAllLists(args.Skip(1).ToList()); break;
+                    await ShowAllLists(args.Skip(1).ToList(), formatter); break;
                 case "show":
                 case "view":
-                    await ShowTasksInList(args.Skip(1).ToList()); break;
+                    await ShowTasksInList(args.Skip(1).ToList(), formatter); break;
                 case "add":
                 case "create":
                     Console.WriteLine("CreateTask");
@@ -92,11 +95,11 @@ class Program
     // --------
 
     /// <summary>Authenticate with Microsoft Graph to login</summary>
-    static async Task Login()
+    static async Task Login(IOutputFormatter formatter)
     {
         client = await AuthManager.Login(APP_DIR, settings);
         var user = await client!.Me.GetAsync();
-        Console.WriteLine($"Login successful! User: {user!.DisplayName}");
+        Console.WriteLine(formatter.Format(user));
         await PopulateAllLists(); // Populate the map after successful login
     }
 
@@ -109,11 +112,11 @@ class Program
     }
 
     /// <summary>Show the current user</summary>
-    static async Task ShowUser()
+    static async Task ShowUser(IOutputFormatter formatter)
     {
         await EnsureAuthentication();
         var user = await client!.Me.GetAsync();
-        Console.WriteLine($"\n👤 User: {user!.DisplayName} ({user.UserPrincipalName})\n");
+        Console.WriteLine(formatter.Format(user));
     }
 
     /// <summary>Get all the todo lists and populate the map</summary>
@@ -128,36 +131,16 @@ class Program
     }
 
     /// <summary>Show all the todo lists</summary>
-    static async Task ShowAllLists(List<string> args)
+    static async Task ShowAllLists(List<string> args, IOutputFormatter formatter)
     {
         // Ensure we are authenticated
         await EnsureAuthentication();
 
-        // Loop over all the lists
-        foreach (var list in todoListsMap.Values)
-        {
-            if (args.Contains("--owned") && !list.IsOwner.GetValueOrDefault(false))
-            {
-                continue;
-            }
-
-            if (args.Contains("--shared") && !list.IsShared.GetValueOrDefault(false))
-            {
-                continue;
-            }
-
-            if (args.Contains("--id"))
-            {
-                Console.Write(list.Id + "\t");
-            }
-
-            Console.Write(list.DisplayName);
-            Console.Write("\n");
-        }
+        Console.WriteLine(formatter.Format(todoListsMap.Values));
     }
 
     /// <summary>Show tasks in a specific todo list</summary>
-    static async Task ShowTasksInList(List<string> args)
+    static async Task ShowTasksInList(List<string> args, IOutputFormatter formatter)
     {
         // Ensure that we are authenticated
         await EnsureAuthentication();
@@ -169,7 +152,6 @@ class Program
             return;
         }
 
-        // Get the list using the given identifier
         string listIdentifier = args[0];
         TodoTaskList? todoList = Helpers.GetListFromIdentifier(listIdentifier, todoListsMap);
 
@@ -206,24 +188,13 @@ class Program
         });
 
         // Display the tasks
-        if (tasks!.Value == null || tasks.Value.Count == 0)
-        {
-            Console.WriteLine("  No tasks found.");
-        }
-        else
-        {
-            foreach (var task in tasks.Value)
-            {
-                string status = task.Status == Microsoft.Graph.Models.TaskStatus.Completed ? "☑️" : " ";
-                Console.WriteLine($"{status}\t{task.Title}");
-            }
-        }
+        Console.WriteLine(formatter.Format(tasks!.Value));
     }
 
     /// <summary>Show the help message</summary>
     static void ShowHelp()
     {
-        Console.WriteLine($"Usage: {NAME} <command>\n");
+        Console.WriteLine($"Usage: {NAME} <command> [arguments] [--json]\n");
         Console.WriteLine("A command-line-interface to interact with Microsoft To Do\n");
         Console.WriteLine("Commands:");
         Console.WriteLine("  login       Login with Microsoft Graph Services");
@@ -237,5 +208,7 @@ class Program
         Console.WriteLine("  done        Complete a task");
         Console.WriteLine("  delete      Delete a task");
         Console.WriteLine("  help        Show this help message");
+        Console.WriteLine("\nGlobal Options:");
+        Console.WriteLine("  --json      Output in JSON format");
     }
 }
