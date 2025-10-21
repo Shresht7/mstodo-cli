@@ -9,14 +9,14 @@ public class Settings
     /// <summary>The Tenant ID</summary>
     public string TenantId { get; set; } = string.Empty;
 
-    /// <summary>The Authority URL</summary>
-    public string AuthorityUrl { get; set; } = string.Empty;
-
     /// <summary>The Redirect URI</summary>
     public string RedirectUri { get; set; } = "http://localhost";
 
     /// <summary>The permission scopes</summary>
     public IEnumerable<string> Scopes { get; set; } = [];
+
+    /// <summary>The Authority URL</summary>
+    public string AuthorityUrl => $"https://login.microsoftonline.com/{TenantId}";
 
     /// <summary>
     /// Loads the application settings from the `appsettings.json` file
