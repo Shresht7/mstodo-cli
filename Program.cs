@@ -49,8 +49,7 @@ class Program
                     await ShowAllLists(args.Skip(1).ToList()); break;
                 case "show":
                 case "view":
-                    Console.WriteLine("ShowTask");
-                    break;
+                    await ShowTasksInList(args.Skip(1).ToList()); break;
                 case "add":
                 case "create":
                     Console.WriteLine("CreateTask");
@@ -157,6 +156,70 @@ class Program
         }
     }
 
+    /// <summary>Show tasks in a specific todo list</summary>
+    static async Task ShowTasksInList(List<string> args)
+    {
+        // Ensure that we are authenticated
+        await EnsureAuthentication();
+
+        // Ensure that we have a list identifier0
+        if (args.Count == 0)
+        {
+            Console.WriteLine("Error: Please provide a list identifier (index or name).");
+            return;
+        }
+
+        // Get the list using the given identifier
+        string listIdentifier = args[0];
+        TodoTaskList? todoList = Helpers.GetListFromIdentifier(listIdentifier, todoListsMap);
+
+        // Ensure that the list exists
+        if (todoList == null)
+        {
+            Console.WriteLine($"Error: Todo list '{listIdentifier}' not found.");
+            return;
+        }
+
+        // Parse the limit argument
+        int limit = -1; // -1 means no limit
+        if (args.Contains("--limit"))
+        {
+            int limitIndex = args.IndexOf("--limit");
+            if (limitIndex + 1 < args.Count && int.TryParse(args[limitIndex + 1], out int parsedLimit))
+            {
+                limit = parsedLimit;
+            }
+            else
+            {
+                Console.WriteLine("Error: --limit requires a numeric value.");
+                return;
+            }
+        }
+
+        // Fetch the tasks
+        var tasks = await client!.Me.Todo.Lists[todoList.Id].Tasks.GetAsync(requestConfiguration =>
+        {
+            if (limit > 0)
+            {
+                requestConfiguration.QueryParameters.Top = limit;
+            }
+        });
+
+        // Display the tasks
+        if (tasks!.Value == null || tasks.Value.Count == 0)
+        {
+            Console.WriteLine("  No tasks found.");
+        }
+        else
+        {
+            foreach (var task in tasks.Value)
+            {
+                string status = task.Status == Microsoft.Graph.Models.TaskStatus.Completed ? "☑️" : " ";
+                Console.WriteLine($"{status}\t{task.Title}");
+            }
+        }
+    }
+
     /// <summary>Show the help message</summary>
     static void ShowHelp()
     {
@@ -167,7 +230,7 @@ class Program
         Console.WriteLine("  logout      Logout from Microsoft Graph Services");
         Console.WriteLine("  user        Show current user information");
         Console.WriteLine("  lists       Show your todo lists");
-        Console.WriteLine("  show        Show tasks in a todo list");
+        Console.WriteLine("  show <list> [--limit <number>] Show tasks in a todo list");
         Console.WriteLine("  add         Add a new task");
         Console.WriteLine("  complete    Complete a task");
         Console.WriteLine("  strike      Complete a task");
