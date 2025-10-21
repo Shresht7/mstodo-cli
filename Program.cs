@@ -211,7 +211,8 @@ class Program
         Console.WriteLine("");
 
         Console.WriteLine("  lists       Show your todo lists");
-        Console.WriteLine("  show <list> [--limit <number>] Show tasks in a todo list");
+        Console.WriteLine("  show <list> Show tasks in a todo list");
+        Console.WriteLine("     [--limit <number>] Limit the number of tasks to show");
         Console.WriteLine("  add         Add a new task");
         Console.WriteLine("  complete    Complete a task");
         Console.WriteLine("  delete      Delete a task");
