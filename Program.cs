@@ -61,8 +61,7 @@ class Program
                 case "complete":
                 case "strike":
                 case "done":
-                    Console.WriteLine("CompleteTask");
-                    break;
+                    await CompleteTask(rest, formatter); break;
                 case "delete":
                     Console.WriteLine("DeleteTask");
                     break;
@@ -155,8 +154,6 @@ class Program
 
         string listIdentifier = args[0];
         TodoTaskList? todoList = Helpers.GetListFromIdentifier(listIdentifier, todoListsMap);
-
-        // Ensure that the list exists
         if (todoList == null)
         {
             Console.WriteLine($"Error: Todo list '{listIdentifier}' not found.");
@@ -245,6 +242,82 @@ class Program
         }
     }
 
+    /// <summary>Complete a task in a specific todo list</summary>
+    static async Task CompleteTask(List<string> args, IOutputFormatter formatter)
+    {
+        // Ensure that we are authenticated
+        await EnsureAuthentication();
+
+        // Ensure that we have a list identifier and a task identifier
+        if (args.Count < 2)
+        {
+            Console.WriteLine("Error: Please provide a list identifier and a task identifier.");
+            Console.WriteLine("Usage: complete <list_identifier> <task_identifier>");
+            return;
+        }
+
+        // Extract the list identifier and task identifier
+        string listIdentifier = args[0];
+        string taskIdentifier = string.Join(" ", args.Skip(1));
+
+        // Find the todo list by identifier
+        TodoTaskList? todoList = Helpers.GetListFromIdentifier(listIdentifier, todoListsMap);
+        if (todoList == null)
+        {
+            Console.WriteLine($"Error: Todo list '{listIdentifier}' not found.");
+            return;
+        }
+
+        // Fetch tasks for the list to find the target task
+        var tasks = await client!.Me.Todo.Lists[todoList.Id].Tasks.GetAsync();
+        TodoTask? targetTask = null;
+
+        // Try to find by index
+        if (int.TryParse(taskIdentifier, out int index))
+        {
+            if (index >= 0 && index < tasks!.Value!.Count)
+            {
+                targetTask = tasks.Value.ElementAt(index);
+            }
+        }
+
+        // Try to find by title (case-insensitive)
+        if (targetTask == null)
+        {
+            targetTask = tasks!.Value!.FirstOrDefault(t => t.Title!.Equals(taskIdentifier, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (targetTask == null)
+        {
+            Console.WriteLine($"Error: Task '{taskIdentifier}' not found in list '{todoList.DisplayName}'.");
+            return;
+        }
+
+        // Update the task status to completed
+        var updatedTask = new TodoTask
+        {
+            Status = Microsoft.Graph.Models.TaskStatus.Completed
+        };
+
+        // Update the task
+        try
+        {
+            var completedTask = await client!.Me.Todo.Lists[todoList.Id].Tasks[targetTask.Id].PatchAsync(updatedTask);
+            if (formatter is JsonFormatter)
+            {
+                Console.WriteLine(formatter.Format(completedTask));
+            }
+            else
+            {
+                Console.WriteLine($"Successfully completed task '{completedTask!.Title}' in list '{todoList.DisplayName}'.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error completing task: {ex.Message}");
+        }
+    }
+
     /// <summary>Show the help message</summary>
     static void ShowHelp()
     {
@@ -267,7 +340,7 @@ class Program
         Console.WriteLine("  lists       Show your todo lists");
         Console.WriteLine("  show <list> [--limit <number>] Show tasks in a todo list");
         Console.WriteLine("  add <list> <title> Add a new task to a specific list");
-        Console.WriteLine("  complete    Complete a task");
+        Console.WriteLine("  complete <list> <task> Complete a task in a specific list");
         Console.WriteLine("  delete      Delete a task");
         Console.WriteLine("");
 
