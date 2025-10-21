@@ -19,6 +19,7 @@ class Program
         NAME
     );
 
+    /// <summary>Application settings</summary>
     static Settings settings = Settings.Load();
 
     // MAIN
@@ -41,7 +42,7 @@ class Program
                     await ShowUser(); break;
                 case "list":
                 case "lists":
-                    await ShowList(); break;
+                    await ShowAllLists(args.Skip(1).ToList()); break;
                 case "show":
                 case "view":
                     Console.WriteLine("ShowTask");
@@ -107,7 +108,7 @@ class Program
     }
 
     /// <summary>Show all the todo lists</summary>
-    static async Task ShowList()
+    static async Task ShowAllLists(List<string> args)
     {
         // Ensure we're logged in
         await EnsureAuthentication();
@@ -115,10 +116,25 @@ class Program
         // Get all the todo lists
         var lists = await client!.Me.Todo.Lists.GetAsync();
 
-        Console.WriteLine("\n📋 Your Lists:\n");
         foreach (var list in lists!.Value!)
         {
-            Console.WriteLine($" - {list.Id}\t{list.DisplayName}");
+            if (args.Contains("--owned") && !list.IsOwner.GetValueOrDefault(false))
+            {
+                continue;
+            }
+
+            if (args.Contains("--shared") && !list.IsShared.GetValueOrDefault(false))
+            {
+                continue;
+            }
+
+            if (args.Contains("--id"))
+            {
+                Console.Write(list.Id + "\t");
+            }
+
+            Console.Write(list.DisplayName);
+            Console.Write("\n");
         }
     }
 
