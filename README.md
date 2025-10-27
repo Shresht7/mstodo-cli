@@ -3,7 +3,7 @@
 A Command-Line-Interface for Microsoft To Do.
 
 > [!WARNING]
-> This is not meant to be a **proper** command-line interface for Microsoft To Do. Just a quick and dirty way to look at your tasks from the terminal.
+> This is not meant to be a **proper** command-line interface for Microsoft To Do. Just a quick and dirty way to grab your tasks from the terminal.
 
 ---
 
