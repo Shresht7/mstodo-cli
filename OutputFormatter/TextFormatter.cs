@@ -38,8 +38,9 @@ namespace OutputFormatter
             StringBuilder sb = new StringBuilder();
             foreach (var task in todoTasks)
             {
-                string status = task.Status == Microsoft.Graph.Models.TaskStatus.Completed ? "☑️" : " ";
-                sb.AppendLine($"{status}\t{task.Title}");
+                string status = task.Status == Microsoft.Graph.Models.TaskStatus.Completed ? "[x]" : "[ ]";
+                string importance = task.Importance == Importance.High ? "🌟" : " ";
+                sb.AppendLine($"- {status} {task.Title} {importance}");
             }
             return sb.ToString();
         }
