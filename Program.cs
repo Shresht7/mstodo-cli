@@ -49,9 +49,9 @@ class Program
                     await Logout(); break;
                 case "user":
                     await ShowUser(formatter); break;
-                case "list":
                 case "lists":
                     await ShowAllLists(rest, formatter); break;
+                case "list":
                 case "show":
                 case "view":
                     await ShowTasksInList(rest, formatter); break;
