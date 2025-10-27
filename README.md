@@ -2,6 +2,9 @@
 
 A Command-Line-Interface for Microsoft To Do.
 
+> [!WARNING]
+> This is not meant to be a **proper** command-line interface for Microsoft To Do. Just a quick and dirty way to look at your tasks from the terminal.
+
 ---
 
 ## 💡 Usage
@@ -111,6 +114,12 @@ dotnet run -- <command> [arguments]
 ```
 
 Add the built executable to `PATH`.
+
+---
+
+## 📕 References
+
+- [Microsoft To Do API overview](https://learn.microsoft.com/en-us/graph/todo-concept-overview)
 
 ---
 
