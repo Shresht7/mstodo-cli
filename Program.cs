@@ -83,8 +83,15 @@ class Program
     /// <summary>Ensure that we are authenticated, and prompt to login if we are not</summary>
     private static async Task EnsureAuthentication()
     {
-        client ??= await AuthManager.Login(APP_DIR, settings);
-        if (client != null && todoListsMap.Count == 0) // Populate map if client is authenticated and map is empty
+        if (client == null)
+        {
+            client = await AuthManager.Login(APP_DIR, settings);
+            if (client == null)
+            {
+                throw new InvalidOperationException("Authentication failed: GraphServiceClient could not be initialized.");
+            }
+        }
+        if (todoListsMap.Count == 0) // Populate map if client is authenticated and map is empty
         {
             await PopulateAllLists();
         }
