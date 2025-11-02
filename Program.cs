@@ -54,7 +54,7 @@ class Program
                 case "done":
                     await new CompleteCommand().ExecuteAsync(context); break;
                 case "delete":
-                    await DeleteTask(rest, formatter); break;
+                    await new DeleteCommand().ExecuteAsync(context); break;
                 case "help":
                 case "--help":
                 case "-h":
@@ -93,35 +93,6 @@ class Program
         await AuthManager.Logout(APP_DIR, settings);
         todoListsMap.Clear(); // Clear the map on logout
         Console.WriteLine("Logged out.");
-    }
-
-    static async Task DeleteTask(List<string> args, IOutputFormatter formatter)
-    {
-        var (todoList, targetTask, errorMessage) = await GetListAndTask(args);
-        if (errorMessage != null)
-        {
-            Console.WriteLine(errorMessage);
-            Console.WriteLine("Usage: delete <list_identifier> <task_identifier>");
-            return;
-        }
-
-        // Delete the task
-        try
-        {
-            await client!.Me.Todo.Lists[todoList!.Id].Tasks[targetTask!.Id].DeleteAsync();
-            if (formatter is JsonFormatter)
-            {
-                Console.WriteLine(formatter.Format(targetTask));
-            }
-            else
-            {
-                Console.WriteLine($"Successfully deleted task '{targetTask!.Title}' from list '{todoList.DisplayName}'.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error deleting task: {ex.Message}");
-        }
     }
 
     /// <summary>Show the help message</summary>
