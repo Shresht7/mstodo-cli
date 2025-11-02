@@ -44,7 +44,7 @@ namespace mstodo_cli.Commands
         }
 
         /// <summary>Get all the todo lists and populate the map</summary>
-        private async Task PopulateAllLists()
+        public async Task PopulateAllLists()
         {
             var lists = await Client!.Me.Todo.Lists.GetAsync();
             TodoListsMap.Clear();
