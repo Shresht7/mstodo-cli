@@ -31,6 +31,9 @@ class Program
 
     static async Task Main(string[] args)
     {
+        // Set the output encoding to UTF-8
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
+
         try
         {
             // Get the output formatter
