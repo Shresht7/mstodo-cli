@@ -45,7 +45,7 @@ class Program
                 case "list":
                 case "show":
                 case "view":
-                    await ShowTasksInList(rest, formatter); break;
+                    await new ShowCommand().ExecuteAsync(context); break;
                 case "add":
                 case "create":
                     await AddTask(rest, formatter); break;
@@ -93,45 +93,6 @@ class Program
         await AuthManager.Logout(APP_DIR, settings);
         todoListsMap.Clear(); // Clear the map on logout
         Console.WriteLine("Logged out.");
-    }
-
-    /// <summary>Show tasks in a specific todo list</summary>
-    static async Task ShowTasksInList(List<string> args, IOutputFormatter formatter)
-    {
-        var (todoList, _, errorMessage) = await CommandHelpers.GetListAndTask(context, requireTask: false);
-        if (errorMessage != null)
-        {
-            Console.WriteLine(errorMessage);
-            return;
-        }
-
-        // Parse the limit argument
-        int limit = -1; // -1 means no limit
-        if (args.Contains("--limit"))
-        {
-            int limitIndex = args.IndexOf("--limit");
-            if (limitIndex + 1 < args.Count && int.TryParse(args[limitIndex + 1], out int parsedLimit))
-            {
-                limit = parsedLimit;
-            }
-            else
-            {
-                Console.WriteLine("Error: --limit requires a numeric value.");
-                return;
-            }
-        }
-
-        // Fetch the tasks
-        var tasks = await client!.Me.Todo.Lists[todoList!.Id].Tasks.GetAsync(requestConfiguration =>
-        {
-            if (limit > 0)
-            {
-                requestConfiguration.QueryParameters.Top = limit;
-            }
-        });
-
-        // Display the tasks
-        Console.WriteLine(formatter.Format(tasks!.Value));
     }
 
     /// <summary>Add a new task to a specific todo list</summary>
