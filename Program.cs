@@ -52,7 +52,7 @@ class Program
                 case "complete":
                 case "strike":
                 case "done":
-                    await CompleteTask(rest, formatter); break;
+                    await new CompleteCommand().ExecuteAsync(context); break;
                 case "delete":
                     await DeleteTask(rest, formatter); break;
                 case "help":
@@ -93,42 +93,6 @@ class Program
         await AuthManager.Logout(APP_DIR, settings);
         todoListsMap.Clear(); // Clear the map on logout
         Console.WriteLine("Logged out.");
-    }
-
-    /// <summary>Complete a task in a specific todo list</summary>
-    static async Task CompleteTask(List<string> args, IOutputFormatter formatter)
-    {
-        var (todoList, targetTask, errorMessage) = await GetListAndTask(args);
-        if (errorMessage != null)
-        {
-            Console.WriteLine(errorMessage);
-            Console.WriteLine("Usage: complete <list_identifier> <task_identifier>");
-            return;
-        }
-
-        // Update the task status to completed
-        var updatedTask = new TodoTask
-        {
-            Status = Microsoft.Graph.Models.TaskStatus.Completed
-        };
-
-        // Update the task
-        try
-        {
-            var completedTask = await client!.Me.Todo.Lists[todoList!.Id].Tasks[targetTask!.Id].PatchAsync(updatedTask);
-            if (formatter is JsonFormatter)
-            {
-                Console.WriteLine(formatter.Format(completedTask));
-            }
-            else
-            {
-                Console.WriteLine($"Successfully completed task '{completedTask!.Title}' in list '{todoList.DisplayName}'.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error completing task: {ex.Message}");
-        }
     }
 
     static async Task DeleteTask(List<string> args, IOutputFormatter formatter)
