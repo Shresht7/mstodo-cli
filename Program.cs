@@ -48,7 +48,7 @@ class Program
                     await new ShowCommand().ExecuteAsync(context); break;
                 case "add":
                 case "create":
-                    await AddTask(rest, formatter); break;
+                    await new AddCommand().ExecuteAsync(context); break;
                 case "complete":
                 case "strike":
                 case "done":
@@ -93,46 +93,6 @@ class Program
         await AuthManager.Logout(APP_DIR, settings);
         todoListsMap.Clear(); // Clear the map on logout
         Console.WriteLine("Logged out.");
-    }
-
-    /// <summary>Add a new task to a specific todo list</summary>
-    static async Task AddTask(List<string> args, IOutputFormatter formatter)
-    {
-        var (todoList, _, errorMessage) = await GetListAndTask(args, requireTask: false);
-        if (errorMessage != null)
-        {
-            Console.WriteLine(errorMessage);
-            Console.WriteLine("Usage: add <list_identifier> <task_title>");
-            return;
-        }
-
-        // Extract the task title (it's the second argument onwards)
-        string taskTitle = string.Join(" ", args.Skip(1));
-
-        // Create the new task
-        var newTask = new TodoTask
-        {
-            Title = taskTitle,
-            // TODO: Add other properties as needed
-        };
-
-        // Add the task to the list
-        try
-        {
-            var addedTask = await client!.Me.Todo.Lists[todoList!.Id].Tasks.PostAsync(newTask);
-            if (formatter is JsonFormatter)
-            {
-                Console.WriteLine(formatter.Format(addedTask));
-            }
-            else
-            {
-                Console.WriteLine($"Successfully added task '{addedTask!.Title}' to list '{todoList.DisplayName}'.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error adding task: {ex.Message}");
-        }
     }
 
     /// <summary>Complete a task in a specific todo list</summary>
