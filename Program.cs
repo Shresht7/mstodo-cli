@@ -3,6 +3,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using mstodo_cli.Commands;
 using mstodo_cli.OutputFormatter;
+using mstodo_cli;
 
 // -------
 // PROGRAM
@@ -75,8 +76,7 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error:");
-            Console.WriteLine(ex.ToString());
+            ErrorHandler.HandleException(ex, APP_DIR);
         }
     }
 }
