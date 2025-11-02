@@ -98,7 +98,7 @@ class Program
     /// <summary>Show tasks in a specific todo list</summary>
     static async Task ShowTasksInList(List<string> args, IOutputFormatter formatter)
     {
-        var (todoList, _, errorMessage) = await GetListAndTask(args, requireTask: false);
+        var (todoList, _, errorMessage) = await CommandHelpers.GetListAndTask(context, requireTask: false);
         if (errorMessage != null)
         {
             Console.WriteLine(errorMessage);
@@ -237,69 +237,6 @@ class Program
         {
             Console.WriteLine($"Error deleting task: {ex.Message}");
         }
-    }
-
-    /// <summary>Retrieves a TodoTaskList and optionally a TodoTask based on provided arguments.</summary>
-    /// <param name="args">The list of command-line arguments.</param>
-    /// <param name="requireTask">If true, a task identifier is expected and a TodoTask will be searched for.</param>
-    /// <param name="listIdentifierIndex">The index in 'args' where the list identifier is expected.</param>
-    /// <param name="taskIdentifierIndex">The index in 'args' where the task identifier is expected (if 'requireTask' is true).</param>
-    /// <returns>A tuple containing the TodoTaskList, TodoTask (null if not found or not required), and an error message (null if successful).</returns>
-    private static async Task<(TodoTaskList? todoList, TodoTask? targetTask, string? errorMessage)> GetListAndTask(
-        List<string> args, bool requireTask = true, int listIdentifierIndex = 0, int taskIdentifierIndex = 1)
-    {
-        // Ensure that we are authenticated
-        await EnsureAuthentication();
-
-        // Validate argument count for list
-        if (args.Count <= listIdentifierIndex)
-        {
-            return (null, null, "Error: Please provide a list identifier (index or name).");
-        }
-
-        string listIdentifier = args[listIdentifierIndex];
-        TodoTaskList? todoList = Helpers.GetListFromIdentifier(listIdentifier, todoListsMap);
-        if (todoList == null)
-        {
-            return (null, null, $"Error: Todo list '{listIdentifier}' not found.");
-        }
-
-        TodoTask? targetTask = null;
-        if (requireTask)
-        {
-            // Validate argument count for task
-            if (args.Count <= taskIdentifierIndex)
-            {
-                return (null, null, "Error: Please provide a task identifier (index or name).");
-            }
-
-            string taskIdentifier = string.Join(" ", args.Skip(taskIdentifierIndex));
-
-            // Fetch tasks for the list to find the target task
-            var tasks = await client!.Me.Todo.Lists[todoList.Id].Tasks.GetAsync();
-
-            // Try to find by index
-            if (int.TryParse(taskIdentifier, out int index))
-            {
-                if (index >= 0 && index < tasks!.Value!.Count)
-                {
-                    targetTask = tasks.Value.ElementAt(index);
-                }
-            }
-
-            // Try to find by title (case-insensitive)
-            if (targetTask == null)
-            {
-                targetTask = tasks!.Value!.FirstOrDefault(t => t.Title!.Equals(taskIdentifier, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (targetTask == null)
-            {
-                return (todoList, null, $"Error: Task '{taskIdentifier}' not found in list '{todoList.DisplayName}'.");
-            }
-        }
-
-        return (todoList, targetTask, null);
     }
 
     /// <summary>Show the help message</summary>
