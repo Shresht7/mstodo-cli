@@ -12,6 +12,15 @@ class Program
     /// <summary>Name of the application</summary>
     static readonly string NAME = "mstodo-cli";
 
+    /// <summary>Path to the application data folder</summary>
+    static readonly string APP_DIR = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        NAME
+    );
+
+    /// <summary>Application settings</summary>
+    static Settings settings = Settings.Load();
+
     /// <summary>Cache for todo lists: DisplayName -> TodoTaskList</summary>
     static Dictionary<string, TodoTaskList> todoListsMap = new Dictionary<string, TodoTaskList>();
 
