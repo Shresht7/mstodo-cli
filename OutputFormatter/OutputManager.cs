@@ -1,5 +1,3 @@
-namespace mstodo_cli.OutputFormatter;
-
 public static class OutputManager
 {
     public static IOutputFormatter GetFormatter(List<string> args)

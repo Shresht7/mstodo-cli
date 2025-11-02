@@ -1,9 +1,6 @@
 using Microsoft.Graph.Models;
 using System.Text;
 
-namespace mstodo_cli.OutputFormatter;
-
-
 public class TextFormatter : IOutputFormatter
 {
     public string Format<T>(T data)

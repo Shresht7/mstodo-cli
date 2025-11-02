@@ -1,17 +1,13 @@
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
-using mstodo_cli.OutputFormatter;
 
-namespace mstodo_cli.Commands
+public class UserCommand : ICommand
 {
-    public class UserCommand : ICommand
+    /// <summary>Show the current user</summary>
+    public async Task ExecuteAsync(CommandContext context)
     {
-        /// <summary>Show the current user</summary>
-        public async Task ExecuteAsync(CommandContext context)
-        {
-            await context.EnsureAuthentication();
-            var user = await context.Client!.Me.GetAsync();
-            Console.WriteLine(context.Formatter.Format(user));
-        }
+        await context.EnsureAuthentication();
+        var user = await context.Client!.Me.GetAsync();
+        Console.WriteLine(context.Formatter.Format(user));
     }
 }
