@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+namespace mstodo_cli.OutputFormatter;
+
 public interface IOutputFormatter
 {
     string Format<T>(T data);
