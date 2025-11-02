@@ -40,14 +40,59 @@ class Program
                 case "user":
                     await new UserCommand().ExecuteAsync(context); break;
 
+                case "lists":
+                    await new ListsCommand().ExecuteAsync(context); break;
+                case "list":
+                case "show":
+                case "view":
+                    await ShowTasksInList(rest, formatter); break;
+                case "add":
+                case "create":
+                    await AddTask(rest, formatter); break;
+                case "complete":
+                case "strike":
+                case "done":
+                    await CompleteTask(rest, formatter); break;
+                case "delete":
+                    await DeleteTask(rest, formatter); break;
+                case "help":
+                case "--help":
+                case "-h":
+                default:
+                    ShowHelp();
+                    break;
 
-    /// <summary>Show all the todo lists</summary>
-    static async Task ShowAllLists(List<string> args, IOutputFormatter formatter)
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error:");
+            Console.WriteLine(ex.ToString());
+        }
+    }
+
+    // COMMANDS
+    // --------
+
+    /// <summary>Authenticate with Microsoft Graph to login</summary>
+    static async Task Login(IOutputFormatter formatter)
     {
-        // Ensure we are authenticated
-        await EnsureAuthentication();
+        // Create a temporary context for login, as the main context might not be fully initialized yet
+        // and login needs to happen before other commands.
+        CommandContext tempContext = new CommandContext(settings, formatter, new List<string>(), APP_DIR, todoListsMap);
 
-        Console.WriteLine(formatter.Format(todoListsMap.Values));
+        tempContext.Client = await AuthManager.Login(tempContext.AppDir, tempContext.Settings);
+        var user = await tempContext.Client!.Me.GetAsync();
+        Console.WriteLine(tempContext.Formatter.Format(user));
+        await tempContext.PopulateAllLists(); // Populate the map after successful login
+    }
+
+    /// <summary>Logout from Microsoft Graph</summary>
+    static async Task Logout()
+    {
+        await AuthManager.Logout(APP_DIR, settings);
+        todoListsMap.Clear(); // Clear the map on logout
+        Console.WriteLine("Logged out.");
     }
 
     /// <summary>Show tasks in a specific todo list</summary>
