@@ -1,6 +1,7 @@
 // Library
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using mstodo_cli.Commands;
 
 // -------
 // PROGRAM
@@ -10,18 +11,6 @@ class Program
 {
     /// <summary>Name of the application</summary>
     static readonly string NAME = "mstodo-cli";
-
-    /// <summary>Microsoft Graph Client</summary>
-    static GraphServiceClient? client;
-
-    /// <summary>Path to the application data folder</summary>
-    static readonly string APP_DIR = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        NAME
-    );
-
-    /// <summary>Application settings</summary>
-    static Settings settings = Settings.Load();
 
     /// <summary>Cache for todo lists: DisplayName -> TodoTaskList</summary>
     static Dictionary<string, TodoTaskList> todoListsMap = new Dictionary<string, TodoTaskList>();
@@ -36,10 +25,11 @@ class Program
             // Get the output formatter
             IOutputFormatter formatter = OutputManager.GetFormatter(args.ToList());
 
+            // Create the command context
+            CommandContext context = new CommandContext(settings, formatter, args.Skip(1).ToList(), APP_DIR, todoListsMap);
+
             // Switch on the subcommand and dispatch the corresponding action
             string command = args.Length > 0 ? args[0].ToLower() : string.Empty;
-            var rest = args.Skip(1).ToList();
-
 
             switch (command)
             {
@@ -48,93 +38,8 @@ class Program
                 case "logout":
                     await Logout(); break;
                 case "user":
-                    await ShowUser(formatter); break;
-                case "lists":
-                    await ShowAllLists(rest, formatter); break;
-                case "list":
-                case "show":
-                case "view":
-                    await ShowTasksInList(rest, formatter); break;
-                case "add":
-                case "create":
-                    await AddTask(rest, formatter); break;
-                case "complete":
-                case "strike":
-                case "done":
-                    await CompleteTask(rest, formatter); break;
-                case "delete":
-                    await DeleteTask(rest, formatter); break;
-                case "help":
-                case "--help":
-                case "-h":
-                default:
-                    ShowHelp();
-                    break;
+                    await new UserCommand().ExecuteAsync(context); break;
 
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error:");
-            Console.WriteLine(ex.ToString());
-        }
-    }
-
-    /// <summary>Ensure that we are authenticated, and prompt to login if we are not</summary>
-    private static async Task EnsureAuthentication()
-    {
-        if (client == null)
-        {
-            client = await AuthManager.Login(APP_DIR, settings);
-            if (client == null)
-            {
-                throw new InvalidOperationException("Authentication failed: GraphServiceClient could not be initialized.");
-            }
-        }
-        if (todoListsMap.Count == 0) // Populate map if client is authenticated and map is empty
-        {
-            await PopulateAllLists();
-        }
-    }
-
-    // COMMANDS
-    // --------
-
-    /// <summary>Authenticate with Microsoft Graph to login</summary>
-    static async Task Login(IOutputFormatter formatter)
-    {
-        client = await AuthManager.Login(APP_DIR, settings);
-        var user = await client!.Me.GetAsync();
-        Console.WriteLine(formatter.Format(user));
-        await PopulateAllLists(); // Populate the map after successful login
-    }
-
-    /// <summary>Logout from Microsoft Graph</summary>
-    static async Task Logout()
-    {
-        await AuthManager.Logout(APP_DIR, settings);
-        todoListsMap.Clear(); // Clear the map on logout
-        Console.WriteLine("Logged out.");
-    }
-
-    /// <summary>Show the current user</summary>
-    static async Task ShowUser(IOutputFormatter formatter)
-    {
-        await EnsureAuthentication();
-        var user = await client!.Me.GetAsync();
-        Console.WriteLine(formatter.Format(user));
-    }
-
-    /// <summary>Get all the todo lists and populate the map</summary>
-    static async Task PopulateAllLists()
-    {
-        var lists = await client!.Me.Todo.Lists.GetAsync();
-        todoListsMap.Clear();
-        foreach (var list in lists!.Value!)
-        {
-            todoListsMap[list.DisplayName!] = list;
-        }
-    }
 
     /// <summary>Show all the todo lists</summary>
     static async Task ShowAllLists(List<string> args, IOutputFormatter formatter)
