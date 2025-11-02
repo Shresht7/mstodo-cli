@@ -1,4 +1,4 @@
-using OutputFormatter;
+namespace mstodo_cli.OutputFormatter;
 
 public static class OutputManager
 {
