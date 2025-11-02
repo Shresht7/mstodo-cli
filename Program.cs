@@ -44,9 +44,9 @@ class Program
             switch (command)
             {
                 case "login":
-                    await Login(formatter); break;
+                    await new LoginCommand().ExecuteAsync(context); break;
                 case "logout":
-                    await Logout(); break;
+                    await new LogoutCommand().ExecuteAsync(context); break;
                 case "user":
                     await new UserCommand().ExecuteAsync(context); break;
 
@@ -83,27 +83,6 @@ class Program
 
     // COMMANDS
     // --------
-
-    /// <summary>Authenticate with Microsoft Graph to login</summary>
-    static async Task Login(IOutputFormatter formatter)
-    {
-        // Create a temporary context for login, as the main context might not be fully initialized yet
-        // and login needs to happen before other commands.
-        CommandContext tempContext = new CommandContext(settings, formatter, new List<string>(), APP_DIR, todoListsMap);
-
-        tempContext.Client = await AuthManager.Login(tempContext.AppDir, tempContext.Settings);
-        var user = await tempContext.Client!.Me.GetAsync();
-        Console.WriteLine(tempContext.Formatter.Format(user));
-        await tempContext.PopulateAllLists(); // Populate the map after successful login
-    }
-
-    /// <summary>Logout from Microsoft Graph</summary>
-    static async Task Logout()
-    {
-        await AuthManager.Logout(APP_DIR, settings);
-        todoListsMap.Clear(); // Clear the map on logout
-        Console.WriteLine("Logged out.");
-    }
 
     /// <summary>Show the help message</summary>
     static void ShowHelp()
