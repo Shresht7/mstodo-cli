@@ -28,12 +28,32 @@ public class ShowCommand : ICommand
             }
         }
 
+        // Parse the filter argument
+        string filter = string.Empty;
+        if (context.Args.Contains("--filter"))
+        {
+            int filterIndex = context.Args.IndexOf("--filter");
+            if (filterIndex + 1 < context.Args.Count)
+            {
+                filter = context.Args[filterIndex + 1];
+            }
+            else
+            {
+                Console.WriteLine("Error: --filter requires a string value.");
+                return;
+            }
+        }
+
         // Fetch the tasks
         var tasks = await context.Client!.Me.Todo.Lists[todoList!.Id].Tasks.GetAsync(requestConfiguration =>
         {
             if (limit > 0)
             {
                 requestConfiguration.QueryParameters.Top = limit;
+            }
+            if (!string.IsNullOrEmpty(filter))
+            {
+                requestConfiguration.QueryParameters.Filter = filter;
             }
         });
 
