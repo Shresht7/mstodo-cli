@@ -79,10 +79,10 @@ public class ShowCommand : ICommand
         // Combine filter and search
         if (!string.IsNullOrEmpty(search))
         {
-            string searchFilter = $"contains(title,'{search}')";
+            string searchFilter = $"contains(title,'{search}') or contains(body/content,'{search}')";
             if (!string.IsNullOrEmpty(filter))
             {
-                filter = $"{filter} and {searchFilter}";
+                filter = $"{filter} and ({searchFilter})";
             }
             else
             {
