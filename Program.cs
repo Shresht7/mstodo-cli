@@ -101,6 +101,7 @@ class Program
         Console.WriteLine("  lists                              Show your todo lists");
         Console.WriteLine("  show <list> [--limit <number>]     Show tasks in a todo list");
         Console.WriteLine("              [--filter <string>]    Filter tasks in a todo list");
+        Console.WriteLine("              [--orderby <string>]   Sort tasks in a todo list");
         Console.WriteLine("  add <list> <title>                 Add a new task to a specific list");
         Console.WriteLine("  complete <list> <task>             Complete a task in a specific list");
         Console.WriteLine("  delete <list> <task>               Delete a task in a specific list");

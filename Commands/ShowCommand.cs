@@ -44,6 +44,22 @@ public class ShowCommand : ICommand
             }
         }
 
+        // Parse the orderby argument
+        string orderby = string.Empty;
+        if (context.Args.Contains("--orderby"))
+        {
+            int orderbyIndex = context.Args.IndexOf("--orderby");
+            if (orderbyIndex + 1 < context.Args.Count)
+            {
+                orderby = context.Args[orderbyIndex + 1];
+            }
+            else
+            {
+                Console.WriteLine("Error: --orderby requires a string value.");
+                return;
+            }
+        }
+
         // Fetch the tasks
         var tasks = await context.Client!.Me.Todo.Lists[todoList!.Id].Tasks.GetAsync(requestConfiguration =>
         {
@@ -54,6 +70,10 @@ public class ShowCommand : ICommand
             if (!string.IsNullOrEmpty(filter))
             {
                 requestConfiguration.QueryParameters.Filter = filter;
+            }
+            if (!string.IsNullOrEmpty(orderby))
+            {
+                requestConfiguration.QueryParameters.Orderby = new[] { orderby };
             }
         });
 
