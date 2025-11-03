@@ -45,6 +45,6 @@ public class TextFormatter : IOutputFormatter
 
     private string FormatUser(User user)
     {
-        return $"\n👤 User: {user.DisplayName} ({user.UserPrincipalName})\n";
+        return $"{user.DisplayName} ({user.UserPrincipalName})";
     }
 }
