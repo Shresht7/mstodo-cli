@@ -60,6 +60,36 @@ public class ShowCommand : ICommand
             }
         }
 
+        // Parse the search argument
+        string search = string.Empty;
+        if (context.Args.Contains("--search"))
+        {
+            int searchIndex = context.Args.IndexOf("--search");
+            if (searchIndex + 1 < context.Args.Count)
+            {
+                search = context.Args[searchIndex + 1];
+            }
+            else
+            {
+                Console.WriteLine("Error: --search requires a string value.");
+                return;
+            }
+        }
+
+        // Combine filter and search
+        if (!string.IsNullOrEmpty(search))
+        {
+            string searchFilter = $"contains(title,'{search}')";
+            if (!string.IsNullOrEmpty(filter))
+            {
+                filter = $"{filter} and {searchFilter}";
+            }
+            else
+            {
+                filter = searchFilter;
+            }
+        }
+
         // Fetch the tasks
         var tasks = await context.Client!.Me.Todo.Lists[todoList!.Id].Tasks.GetAsync(requestConfiguration =>
         {
