@@ -28,12 +28,32 @@ public class ShowCommand : ICommand
             }
         }
 
+        // Parse the skip argument
+        int skip = -1; // -1 means no skip
+        if (context.Args.Contains("--skip"))
+        {
+            int skipIndex = context.Args.IndexOf("--skip");
+            if (skipIndex + 1 < context.Args.Count && int.TryParse(context.Args[skipIndex + 1], out int parsedSkip))
+            {
+                skip = parsedSkip;
+            }
+            else
+            {
+                Console.WriteLine("Error: --skip requires a numeric value.");
+                return;
+            }
+        }
+
         // Fetch the tasks
         var tasks = await context.Client!.Me.Todo.Lists[todoList!.Id].Tasks.GetAsync(requestConfiguration =>
         {
             if (limit > 0)
             {
                 requestConfiguration.QueryParameters.Top = limit;
+            }
+            if (skip > 0)
+            {
+                requestConfiguration.QueryParameters.Skip = skip;
             }
         });
 
