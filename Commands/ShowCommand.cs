@@ -106,6 +106,23 @@ public class ShowCommand : ICommand
             }
         }
 
+        // Parse the important argument
+        bool important = context.Args.Contains("--important");
+
+        // Combine filter, search and important
+        if (important)
+        {
+            string importantFilter = "importance eq 'high'";
+            if (!string.IsNullOrEmpty(filter))
+            {
+                filter = $"{filter} and {importantFilter}";
+            }
+            else
+            {
+                filter = importantFilter;
+            }
+        }
+
         // Fetch the tasks
         var tasks = await context.Client!.Me.Todo.Lists[todoList!.Id].Tasks.GetAsync(requestConfiguration =>
         {
