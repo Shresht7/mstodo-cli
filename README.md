@@ -18,30 +18,29 @@ mstodo help
 -   `login`: Authenticate with Microsoft Graph Services.
 -   `logout`: Log out from Microsoft Graph Services.
 -   `user`: Show current user information.
-    *   Example: `mstodo user`
-    *   Example (JSON): `mstodo user --json`
 -   `lists`: Show all your To Do lists.
-    *   Example: `mstodo lists`
-    *   Example (JSON): `mstodo lists --json`
--   `show <list_identifier> [--limit <number>]`: Show tasks in a specific To Do list.
-    *   `<list_identifier>` can be the list's display name (e.g., "Tasks", "Ideas") or its 0-based index.
-    *   `--limit <number>`: Optionally limit the number of tasks displayed.
-    *   Example: `mstodo show Tasks`
-    *   Example: `mstodo show Ideas --limit 5`
-    *   Example (JSON): `mstodo show Tasks --json`
+-   `show <list_identifier>`: Show tasks in a specific To Do list.
+    -   Aliases: `list`, `view`
+    -   Options:
+        -   `--limit <number>`: Limit the number of tasks displayed.
+        -   `--skip <number>`: Skip a number of tasks.
+        -   `--filter <string>`: Filter tasks (e.g., "status eq 'completed'").
+        -   `--search <string>`: Search for tasks by title and description.
+        -   `--orderby <string>`: Sort tasks (e.g., "createdDateTime desc").
+        -   `--important`: Show only high importance tasks.
 -   `add <list_identifier> <task_title>`: Add a new task to a specific list.
-    *   `<list_identifier>` can be the list's display name (e.g., "Tasks", "Ideas") or its 0-based index.
-    *   `<task_title>` is the title of the task to add.
-    *   Example: `mstodo add Tasks "Buy groceries"`
+    -   Aliases: `create`
 -   `complete <list_identifier> <task_identifier>`: Complete a task in a specific list.
-    *   `<list_identifier>` can be the list's display name (e.g., "Tasks", "Ideas") or its 0-based index.
-    *   `<task_identifier>` can be the task's title or its 0-based index within the list.
-    *   Example: `mstodo complete Tasks "Buy groceries"`
+    -   Aliases: `strike`, `done`
 -   `delete <list_identifier> <task_identifier>`: Delete a task in a specific To Do list.
-    *   `<list_identifier>` can be the list's display name (e.g., "Tasks", "Ideas") or its 0-based index.
-    *   `<task_identifier>` can be the task's title or its 0-based index within the list.
-    *   Example: `mstodo delete Tasks "My Task"`
 -   `help`: Show this help message.
+    -   Aliases: `--help`, `-h`
+
+> [!NOTE]
+>
+> -   `<list_identifier>` can be the list's display name (e.g., "Tasks", "Ideas") or its 0-based index.
+> -   `<task_identifier>` can be the task's title or its 0-based index within the list.
+> -   All commands that output data can be formatted as JSON using the `--json` flag.
 
 ---
 
